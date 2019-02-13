@@ -55,7 +55,25 @@ int get_sTimeLinesDiff(Lines* lineToCheck)
 	}
 	//иначе просто выдаем разницу. Предполагается, что если функция возвращает отрицательное число (а оно может быть исходя из предыдущего условия от -10 до -1),
 	//то далее программа должна ничего не делать именно столько времени
-
+	if (lineToCheck->Hours > 12 && sTime.Hours < 12)
+	{
+		lineToCheck->Hours -= 12;
+	}
+	else
+		if (lineToCheck->Hours < 12 && sTime.Hours > 12)
+		{
+			lineToCheck->Hours += 12;
+		}
+		else
+			if (lineToCheck->Hours == 0 && sTime.Hours == 12)
+			{
+				lineToCheck->Hours = 12;
+			}
+			else
+				if (lineToCheck->Hours == 12 && sTime.Hours == 0)
+				{
+					lineToCheck->Hours = 0;
+				}
 	return diff_Min;
 }
 
@@ -79,30 +97,12 @@ int main()
 		sTime.Hours = (in[0] - 0x30) * 10 + (in[1] - 0x30); //очередная магия
 		sTime.Minutes = (in[3] - 0x30) * 10 + (in[4] - 0x30); //...
 		out = get_sTimeLinesDiff(&line[0]); //переменная out равна возвращаемому значению из функции, в которую передается line[0] для контроля
+
+
 		if (out > 0)
 		{
 			line[0].Hours = (line[0].Hours + abs(out) / 60) % 24;
 		}
-
-		if (line[0].Hours > 12 && sTime.Hours < 12)
-		{
-			line[0].Hours -= 12;
-		}
-		else
-			if (line[0].Hours < 12 && sTime.Hours > 12)
-			{
-				line[0].Hours -= 12;
-			}
-			else
-				if (line[0].Hours == 0 && sTime.Hours == 12)
-				{
-					line[0].Hours == 12;
-				}
-				else
-					if (line[0].Hours == 12 && sTime.Hours == 0)
-					{
-						line[0].Hours == 0;
-					}
 
 		line[0].Minutes += out % 60;
 		if (line[0].Minutes >= 60)
