@@ -17,7 +17,7 @@ typedef struct
 }STime;
 Lines line[4];
 STime sTime;
-int get_sTimeLinesDiff(Lines* lineToCheck)
+int get_sTimeLinesDiff(Lines* lineToCheck, uint8_t waitMinutes)
 {
 	//Если возвращается отрицательное число, то необходимо ждать возвращенное количество минут.
 	//Если положительное, то необходимо добавить к времени на линиях
@@ -50,9 +50,9 @@ int get_sTimeLinesDiff(Lines* lineToCheck)
 	//начать выдавать импульсы. Но ждать можно и час, и два, и 11 часов. 
 	diff_Min12 = sHour12 * 60 + sTime.Minutes - (lHour12 * 60 + lineToCheck->Minutes);
 
-	if (diff_Min12 < -LINE_WAIT_TIME) //Если число больше меньше -10, то есть если системное время в 12ч формате отстает от времени на линии в 12ч более чем на 10 минут
+	if (diff_Min12 < -waitMinutes) //Если число больше меньше -LINE_WAIT_TIME, то есть если системное время в 12ч формате отстает от времени на линии в 12ч более чем на 10 минут
 	{
-		//Если все же ждать очень долго (более 10 минут)
+		//Если все же ждать очень долго (более LINE_WAIT_TIME минут)
 		diff_Min12 = 720 + diff_Min12;         //крутим стрелки вперед на 720 минут (12 часов) минус разница. То есть, 720-120, например. 6 часов.
 	}
 	//иначе просто выдаем разницу. Предполагается, что если функция возвращает отрицательное число (а оно может быть исходя из предыдущего условия от -10 до -1),
@@ -64,7 +64,7 @@ int get_sTimeLinesDiff(Lines* lineToCheck)
 		lineToCheck->Hours += 12;
 	}
 	else
-		if ((sMinutes - lMinutes) >= -720 && (sMinutes - lMinutes) < -LINE_WAIT_TIME)
+		if ((sMinutes - lMinutes) >= -720 && (sMinutes - lMinutes) < -waitMinutes)
 		{
 			lineToCheck->Hours -= 12;
 		}
@@ -91,9 +91,9 @@ int main()
 		std::cin >> in; //вводим системное время
 		sTime.Hours = (in[0] - 0x30) * 10 + (in[1] - 0x30); //очередная магия
 		sTime.Minutes = (in[3] - 0x30) * 10 + (in[4] - 0x30); //...
-		out = get_sTimeLinesDiff(&line[0]); //переменная out равна возвращаемому значению из функции, в которую передается line[0] для контроля
+		out = get_sTimeLinesDiff(&line[0], 0); //переменная out равна возвращаемому значению из функции, в которую передается line[0] для контроля
 
-
+		//далее эмуляция работы на микроконтроллере.
 		if (out > 0)
 		{
 			line[0].Hours = (line[0].Hours + abs(out) / 60) % 24;
